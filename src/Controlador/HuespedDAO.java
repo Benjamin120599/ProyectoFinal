@@ -10,7 +10,7 @@ import Modelo.Usuario;
 
 public class HuespedDAO {
 	
-	ConexionBD conexion = new ConexionBD();
+	ConexionBD conexion = ConexionBD.getConexionBD();
 	
 	// métodos que permiten realizar las ALtas, Bajas, Cambios y Consultas	
 	public boolean agregarHuesped(Huesped obj) {
@@ -24,7 +24,7 @@ public class HuespedDAO {
 	}
 		
 	public boolean modificarHuesped(Huesped a1) {
-		String sql = "UPDATE Huesped SET ID_Huesped='"+a1.getIdHuesped()+"', Nombre='"+a1.getNombre()+"', ApellidoP='"+a1.getApellidoP()+"', ApellidoM='"+a1.getApellidoM()+"', FechaNac="+a1.getFechaNac()+", Telefono="+a1.getTelefono()+"' WHERE ID_Huesped='"+a1.getIdHuesped()+"'";
+		String sql = "UPDATE Huesped SET ID_Huesped='"+a1.getIdHuesped()+"', Nombre='"+a1.getNombre()+"', ApellidoP='"+a1.getApellidoP()+"', ApellidoM='"+a1.getApellidoM()+"', FechaNac='"+a1.getFechaNac()+"', Telefono='"+a1.getTelefono()+"' WHERE ID_Huesped='"+a1.getIdHuesped()+"'";
 		return conexion.ejecutarInstruccion(sql);
 	}
 		

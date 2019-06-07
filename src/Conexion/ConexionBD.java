@@ -10,12 +10,21 @@ import Conexion.ConexionBD;
 
 public class ConexionBD {
 
+	private static ConexionBD miConexion;
 	private Connection conexion;
 	private Statement stm;
-	//private PreparedStatement preparedStatement; 
+	private PreparedStatement preparedStatement; 
 	ResultSet rs = null;
 	
-	public ConexionBD() {
+	
+	public static ConexionBD getConexionBD() {
+		if(miConexion == null) {
+			miConexion = new ConexionBD();
+		}
+		return miConexion;
+	}
+	
+	private ConexionBD() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver"); 
 			String url = "jdbc:mysql://localhost/BD_HUESPED?serverTimezone=UTC";
@@ -41,9 +50,10 @@ public class ConexionBD {
 	
 	public boolean ejecutarInstruccion(String sql) {
 		try {
-			stm = conexion.prepareStatement(sql);
+			//stm = conexion.prepareStatement(sql);
+			preparedStatement = conexion.prepareStatement(sql);
 			int ejecucion;
-			ejecucion = stm.executeUpdate(sql);
+			ejecucion = preparedStatement.executeUpdate(sql);
 			return ejecucion == 1?true:false;
 		} catch (SQLException e) {
 			System.out.println("No se pudo ejecutar la instrucción SQL");

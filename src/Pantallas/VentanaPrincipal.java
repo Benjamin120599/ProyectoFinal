@@ -1,7 +1,6 @@
 package Pantallas;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -10,16 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JInternalFrame.JDesktopIcon;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.JMenu;
@@ -32,10 +28,10 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-
 import com.toedter.calendar.JCalendar;
-
+import Controlador.HuespedDAO;
 import MetodosAhorradores.MetodosAhorradores;
+import Modelo.Huesped;
 
 public class VentanaPrincipal extends JFrame implements ActionListener, KeyListener {
 	
@@ -45,6 +41,8 @@ public class VentanaPrincipal extends JFrame implements ActionListener, KeyListe
 	JMenuItem altaHuesped, bajaHuesped, cambioHuesped, consultaHuesped;
 	JButton btnAdd, btnDel, btnCam, btnCon;
 	JInternalFrame iFAltas, iFBajas, iFCambios, iFConsultas;
+	HuespedDAO hDAO = new HuespedDAO();
+	ButtonGroup bg = new ButtonGroup();
 	
 	// CAMPOS DE LOS INTERNALS FRAMES
 	JCalendar calAltas;
@@ -416,8 +414,6 @@ public class VentanaPrincipal extends JFrame implements ActionListener, KeyListe
 				pCon2.setLayout(null);
 				pCon2.setBounds(10, 90, 670, 300);
 				pCon2.setBorder(new TitledBorder(new EtchedBorder(), "Selecciona criterio de búsqueda: "));
-				
-				ButtonGroup bg = new ButtonGroup();
 								
 				rTodos = new JRadioButton("TODOS");
 				rTodos.addActionListener(this);
@@ -502,28 +498,183 @@ public class VentanaPrincipal extends JFrame implements ActionListener, KeyListe
 	public void actionPerformed(ActionEvent e) {
 		
 		if(e.getSource().equals(btnAdd) || e.getSource().equals(altaHuesped)) {
+			obj.actualizarTablas(tablaAltas);
 			iFAltas.setVisible(true);
 			iFBajas.setVisible(false);
 			iFCambios.setVisible(false);
 			iFConsultas.setVisible(false);
 		} else if(e.getSource().equals(btnDel) || e.getSource().equals(bajaHuesped)) {
+			obj.actualizarTablas(tablaBajas);
 			iFAltas.setVisible(false);
 			iFBajas.setVisible(true);
 			iFCambios.setVisible(false);
 			iFConsultas.setVisible(false);
 		} else if(e.getSource().equals(btnCam) || e.getSource().equals(cambioHuesped)) {
+			obj.actualizarTablas(tablaCambios);
 			iFAltas.setVisible(false);
 			iFBajas.setVisible(false);
 			iFCambios.setVisible(true);
 			iFConsultas.setVisible(false);
 		} else if(e.getSource().equals(btnCon) || e.getSource().equals(consultaHuesped)) {
+			obj.actualizarTablas(tablaConsultas);
 			iFAltas.setVisible(false);
 			iFBajas.setVisible(false);
 			iFCambios.setVisible(false);
 			iFConsultas.setVisible(true);
 		}
 		
+		// PRIMER VENTANA		
+		if(e.getSource().equals(añadir)) {
+			if(nombre.getText().equals("") || idHue.getText().equals("") || apeP.getText().equals("") || apeM.getText().equals("") || tel.getText().equals("")) {
+				JOptionPane.showMessageDialog(rootPane, "Aún hay campos vacíos", "Error", JOptionPane.WARNING_MESSAGE);
+			} else {
+				String fecha = calAltas.getDayChooser().getDay()+"/"+(calAltas.getMonthChooser().getMonth()+1)+"/"+calAltas.getYearChooser().getYear();
+				
+				Huesped h1 = new Huesped(idHue.getText(), nombre.getText(), apeP.getText(), apeM.getText(), fecha, tel.getText());  
+				if( hDAO.buscarHuesped(idHue.getText(), "ID_Huesped") == null) {
+					if(hDAO.agregarHuesped(h1) == true) {
+						obj.actualizarTablas(tablaAltas);
+						JOptionPane.showMessageDialog(rootPane, "El registro se añadió correctamente", null, JOptionPane.INFORMATION_MESSAGE);
+						obj.restablecerComponentes(idHue, nombre, apeP, apeM, tel);
+					} else {
+						getToolkit().beep();
+						JOptionPane.showMessageDialog(rootPane, "El registro no pudo ser añadido", "Error", JOptionPane.ERROR_MESSAGE);
+						obj.restablecerComponentes(idHue, nombre, apeP, apeM, tel);
+					}
+				} else {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "El ID ingresado ya existe", null, JOptionPane.ERROR_MESSAGE);
+					obj.restablecerComponentes(idHue, nombre, apeP, apeM, tel);
+				}
+			}
+		}
+		if(e.getSource().equals(clear1)) {
+			obj.restablecerComponentes(idHue, nombre, apeP, apeM, tel);
+		}
 		
+		// SEGUNDA VENTANA
+		if(e.getSource().equals(buscarB)) {
+			if(hDAO.buscarHuesped(idB.getText(), "ID_Huesped") == null) {
+				getToolkit().beep();
+				JOptionPane.showMessageDialog(rootPane, "El ID ingresado no existe", null, JOptionPane.ERROR_MESSAGE);
+			} else {
+				obj.llenarCampos(nomB, apePB, apeMB, fecB, telB, idB.getText());
+			}
+		}
+		if(e.getSource().equals(eliminar)) {
+			if(hDAO.eliminarHuesped(idB.getText()) == true) {
+				obj.actualizarTablas(tablaBajas);
+				JOptionPane.showMessageDialog(rootPane, "El registro se eliminó correctamente", null, JOptionPane.INFORMATION_MESSAGE);
+				obj.restablecerComponentes(idB, nomB, apePB, apeMB, fecB, telB);
+			} else {
+				getToolkit().beep();
+				JOptionPane.showMessageDialog(rootPane, "El registro no se pudo eliminar", null, JOptionPane.ERROR_MESSAGE);
+				obj.restablecerComponentes(idB, nomB, apePB, apeMB, fecB, telB);
+			}	
+		}
+		if(e.getSource().equals(clear2)) {
+			obj.restablecerComponentes(idB, nomB, apePB, apeMB, fecB, telB);
+		}
+		
+		//TERCERA VENTANA
+		if(e.getSource().equals(buscarM)) {
+			if(hDAO.buscarHuesped(idM.getText(), "ID_Huesped") == null) {
+				getToolkit().beep();
+				JOptionPane.showMessageDialog(rootPane, "El ID ingresado no existe", null, JOptionPane.ERROR_MESSAGE);
+			} else {
+				obj.llenarCampos(nomM, apePM, apeMM, fecM, telM, idM.getText());
+			}
+		}
+		if(e.getSource().equals(modificar)) {
+			Huesped h1 = new Huesped(idM.getText(), nomM.getText(), apePM.getText(), apeMM.getText(), fecM.getText(), telM.getText());
+			if(hDAO.modificarHuesped(h1) == true) {
+				obj.actualizarTablas(tablaCambios);
+				JOptionPane.showMessageDialog(rootPane, "El registro se modificó correctamente", null, JOptionPane.INFORMATION_MESSAGE);
+				obj.restablecerComponentes(idM, nomM, apePM, apeMM, fecM, telM);
+			} else {
+				getToolkit().beep();
+				JOptionPane.showMessageDialog(rootPane, "El registro no se pudo modificar", null, JOptionPane.ERROR_MESSAGE);
+				obj.restablecerComponentes(idM, nomM, apePM, apeMM, fecM, telM);
+			}
+		}
+		if(e.getSource().equals(clear3)) {
+			obj.restablecerComponentes(idM, nomM, apePM, apeMM, fecM, telM);
+		}
+		
+		// CUARTA VENTANA
+		if(e.getSource().equals(consultar)) {
+			if(rNombre.isSelected()) {
+				if(hDAO.buscarHuesped(nomC.getText(), "Nombre") == null) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "El nombre no existe", null, JOptionPane.ERROR_MESSAGE);
+				} else {
+					//hDAO.buscarHuesped(nomC.getText(), "Nombre");
+					obj.actualizarTablaConsultas(tablaConsultas, "SELECT * FROM Huesped WHERE Nombre = '"+nomC.getText()+"';");
+					obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+				}
+			} else if(rApeP.isSelected()) {
+				if(hDAO.buscarHuesped(apePC.getText(), "ApellidoP") == null) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "El apellido no existe", null, JOptionPane.ERROR_MESSAGE);
+				} else {
+					//hDAO.buscarHuesped(apePC.getText(), "ApellidoP");
+					obj.actualizarTablaConsultas(tablaConsultas, "SELECT * FROM Huesped WHERE ApellidoP = '"+apePC.getText()+"';");
+					obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+				}
+			} else if(rApeM.isSelected()) {
+				if(hDAO.buscarHuesped(apeMC.getText(), "ApellidoM") == null) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "El apellido no existe", null, JOptionPane.ERROR_MESSAGE);
+				} else {
+					//hDAO.buscarHuesped(apeMC.getText(), "ApellidoM");
+					obj.actualizarTablaConsultas(tablaConsultas, "SELECT * FROM Huesped WHERE ApellidoM = '"+apeMC.getText()+"';");
+					obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+				}
+			} else if(rFecha.isSelected()) {
+				if(hDAO.buscarHuesped(fecC.getText(), "FechaNac") == null) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "No hay registros de esa fecha", null, JOptionPane.ERROR_MESSAGE);
+				} else {
+					//hDAO.buscarHuesped(fecC.getText(), "FechaNac");
+					obj.actualizarTablaConsultas(tablaConsultas, "SELECT * FROM Huesped WHERE FechaNac = '"+fecC.getText()+"';");
+					obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+				}
+			} else if(rTelefono.isSelected()) {
+				if(hDAO.buscarHuesped(telC.getText(), "Telefono") == null) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "No existe ese número", null, JOptionPane.ERROR_MESSAGE);
+				} else {
+					//hDAO.buscarHuesped(telC.getText(), "Telefono");
+					obj.actualizarTablaConsultas(tablaConsultas, "SELECT * FROM Huesped WHERE Telefono = '"+telC.getText()+"';");
+					obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+				}
+			}
+		}
+		if(e.getSource().equals(clear4)) {
+			obj.restablecerComponentes(nomC, apePC, apeMC, fecC, telC);
+			bg.clearSelection();
+			nomC.setEnabled(false);
+			apePC.setEnabled(false);
+			apeMC.setEnabled(false);
+			fecC.setEnabled(false);
+			telC.setEnabled(false);
+			obj.actualizarTablas(tablaConsultas);
+		}
+		
+		// RADIOBUTTONS
+		if(rNombre.isSelected())
+			obj.habilitarRadioButtons(apePC, apeMC, fecC, telC, nomC);
+		if(rApeP.isSelected())
+			obj.habilitarRadioButtons(nomC, apeMC, fecC, telC, apePC);
+		if(rApeM.isSelected())
+			obj.habilitarRadioButtons(nomC, apePC, fecC, telC, apeMC);
+		if(rFecha.isSelected())
+			obj.habilitarRadioButtons(nomC, apePC, apeMC, telC, fecC);
+		if(rTelefono.isSelected())
+			obj.habilitarRadioButtons(nomC, apePC, apeMC, fecC, telC);
+		if(rTodos.isSelected()) {
+			obj.actualizarTablas(tablaConsultas);
+		}
 	}
 
 	@Override
@@ -559,6 +710,17 @@ public class VentanaPrincipal extends JFrame implements ActionListener, KeyListe
 				obj.restablecerComponentes((JComponent)e.getComponent());
 			}
 		}
+		
+		if(e.getSource().equals(fecC) || e.getSource().equals(fecM)) {
+			if(Character.isDigit(var) || var == KeyEvent.VK_BACK_SPACE || var == KeyEvent.VK_ENTER || e.getKeyCode() == 55 || e.getKeyCode() == 16 ) {
+				
+			} else {
+				getToolkit().beep();
+				JOptionPane.showMessageDialog(rootPane, "Solo puede ingresar el formato dd/mm/aaaa 0 d/m/aaaa", "Error", JOptionPane.WARNING_MESSAGE);
+				obj.restablecerComponentes((JComponent)e.getComponent());
+			}
+		}
+		
 	}
 
 	

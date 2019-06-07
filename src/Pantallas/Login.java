@@ -1,7 +1,5 @@
 package Pantallas;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,7 +13,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import Controlador.HuespedDAO;
 import MetodosAhorradores.MetodosAhorradores;
+import Modelo.Usuario;
 
 public class Login extends JFrame implements KeyListener {
 	
@@ -23,6 +23,7 @@ public class Login extends JFrame implements KeyListener {
 	JTextField usuario;
 	JPasswordField contraseña;
 	JButton login;
+	HuespedDAO hDAO = new HuespedDAO();
 	
 	public Login() {
 		
@@ -60,27 +61,37 @@ public class Login extends JFrame implements KeyListener {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(usuario.getText().equals("") || contraseña.getText().equals("")) {
-					JOptionPane.showMessageDialog(rootPane, "Aún hay casillas vacías.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-				} else {
-					if(usuario.getText().equals("admin")) {
-						
-						char[] pass = contraseña.getPassword();
-						String password ="";
-						for(int i=0; i < pass.length; i++) {
-							password = password+pass[i];
-						}
-						
-						if(password.equals("pass")) {
-							new VentanaPrincipal();
-							dispose();
-						} else {
-							JOptionPane.showMessageDialog(rootPane, "Contraseña incorrecta", "Error", JOptionPane.ERROR_MESSAGE);
-						}
+				try {
+					Usuario us = hDAO.buscarUsuario(usuario.getText());
+					
+					if(usuario.getText().equals("") || contraseña.getText().equals("")) {
+						JOptionPane.showMessageDialog(rootPane, "Aún hay casillas vacías.", "Advertencia", JOptionPane.WARNING_MESSAGE);
 					} else {
-						JOptionPane.showMessageDialog(rootPane, "Usuario no existe", "Error", JOptionPane.ERROR_MESSAGE);
+						if(usuario.getText().equals(us.getUsuario())) {
+							
+							char[] pass = contraseña.getPassword();
+							String password ="";
+							for(int i=0; i < pass.length; i++) {
+								password = password+pass[i];
+							}
+							
+							if(password.equals(us.getPassword())) {
+								new VentanaPrincipal();
+								dispose();
+							} else {
+								getToolkit().beep();
+								JOptionPane.showMessageDialog(rootPane, "Contraseña incorrecta", "Error", JOptionPane.ERROR_MESSAGE);
+							} 
+						} else {
+							getToolkit().beep();
+							JOptionPane.showMessageDialog(rootPane, "Usuario no existe", "Error", JOptionPane.ERROR_MESSAGE);
+						} 
 					}
-				}
+				} catch(NullPointerException ex) {
+					getToolkit().beep();
+					JOptionPane.showMessageDialog(rootPane, "Usuario no existe", "Error", JOptionPane.ERROR_MESSAGE);
+				} 
+				
 			}
 		});
 		add(login);
@@ -101,7 +112,7 @@ public class Login extends JFrame implements KeyListener {
 	public void keyReleased(KeyEvent e) {
 		char var = e.getKeyChar();
 		if(e.getSource().equals(usuario)) {
-			if(Character.isLetter(var) || var == KeyEvent.VK_BACK_SPACE || var == KeyEvent.VK_ENTER ) {
+			if(Character.isLetter(var) || var == KeyEvent.VK_BACK_SPACE || var == KeyEvent.VK_ENTER || e.getKeyCode() == 16) {
 				
 			} else {
 				getToolkit().beep();

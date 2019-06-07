@@ -124,7 +124,7 @@ public class MetodosAhorradores {
 		
 		String controlador = "com.mysql.cj.jdbc.Driver";
 		String url = "jdbc:mysql://localhost/BD_HUESPED?useTimezone=true&serverTimezone=UTC";
-		String consulta = "SELECT * FROM Alumnos";
+		String consulta = "SELECT * FROM Huesped";
 		ResultSetTableModel modeloDatos = null;
 		
 		try {

@@ -10,8 +10,8 @@ public class Inicio {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				//new Login();
-				new VentanaPrincipal(); 
+				new Login();
+				//new VentanaPrincipal(); 
 			}
 		});
 	}
